@@ -1,7 +1,7 @@
 #!/bin/bash
 ### BEGIN INIT INFO
 # Provides:          armhwinfo
-# Required-Start:    
+# Required-Start:
 # Required-Stop:     glibc
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
@@ -54,6 +54,8 @@ prepare_temp_monitoring() {
 	elif [[ -f /sys/devices/b0170000.i2c/i2c-0/0-0065/atc2603c-hwmon.0/ic_temperature ]]; then
 		ln -fs /sys/devices/b0170000.i2c/i2c-0/0-0065/atc2603c-hwmon.0/ic_temperature \
 			/etc/armbianmonitor/datasources/pmictemp
+	elif [[ -f /sys/class/axppower/ic_temp ]]; then
+		ln -fs /sys/class/axppower/ic_temp /etc/armbianmonitor/datasources/pmictemp
 	fi
 
 	# SoC temp: check sun7i legacy exception first, then standard path(s)
@@ -256,7 +258,7 @@ log_hardware_info() {
 	echo -e "\n### cpuinfo:\n" >>${Log}
 	cat /proc/cpuinfo >>${Log}
 	echo -e "\n### meminfo:\n" >>${Log}
-	cat /proc/meminfo >>${Log} 
+	cat /proc/meminfo >>${Log}
 	echo -e "\n### ifconfig:\n" >>${Log}
 	ifconfig >>${Log}
 	echo -e "### partitions:\n" >>${Log}
@@ -314,17 +316,17 @@ case $1 in
 	*start*)
 		# set optimal disk scheduler settings
 		set_io_scheduler &
-		
+
 		# check sd card speed once on 3rd boot too warn for too slow media
 		check_sd_card_speed &
 
 		# get hardware information and rely on contents of /etc/armbian-release
 		collect_information
-		
+
 		# hardware preparation
 		prepare_board &
 		prepare_temp_monitoring &
-		
+
 		# display message, log hardware id to file, write log
 		echo -e "[\e[0;32m ok \x1B[0m] Starting ARM hardware info: $ID (${VERSION})"
 		echo $BOARD_NAME >/var/run/machine.id # we should leave this, maybe users depend on it
